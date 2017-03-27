@@ -7,6 +7,8 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.Point;
+import android.graphics.PointF;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -29,6 +31,7 @@ public class Buble extends View {
     private boolean canBroke;
     private ValueAnimator valueAnimatorX;
     private ValueAnimator valueAnimatorY;
+    private ValueAnimator objectAnimator;
     private AnimatorSet set = new AnimatorSet();
     private boolean touchArea = false;
     private float tempX;
@@ -87,12 +90,32 @@ public class Buble extends View {
             case MotionEvent.ACTION_UP:
                 Log.d("aaa", "actionUp" + touchArea);
                 if (touchArea) {
-                    resetCircle(event.getX(), event.getY());
+//                    resetCircle(event.getX(), event.getY());
+                    newresetCircle(event.getX(), event.getY());
                 }
                 break;
         }
 
         return true;
+    }
+
+    private void newresetCircle(float x,float y){
+        objectAnimator=ValueAnimator.ofObject(new MyObjectEvaluator(),new PointF(x,y),
+                new PointF((float)getWidth()/2,(float)getHeight()/2));
+        objectAnimator.removeAllUpdateListeners();
+        objectAnimator.setInterpolator(new BounceInterpolator());
+        objectAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                tempX=((PointF)animation.getAnimatedValue()).x;
+                tempY=((PointF)animation.getAnimatedValue()).y;
+                moveX=tempX;
+                moveY=tempY;
+                setPath(tempX,tempY);
+                postInvalidate();
+            }
+        });
+        objectAnimator.start();
     }
 
     private void resetCircle(float x, float y) {
